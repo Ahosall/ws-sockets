@@ -1,26 +1,29 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import io from "socket.io-client";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import Login from "./views/Login";
+import Chat from "./views/Chat";
+
+const socket = io("http://localhost:4000", { transports: ["websocket"] });
+
+interface IUser {
+  name: string;
+  id: string;
 }
+
+const App = () => {
+  return (
+    <BrowserRouter>
+      <div>
+        <Routes>
+          <Route path="/" element={<Login socket={socket} />} />
+          <Route path="/chat" element={<Chat socket={socket} />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
+  );
+};
 
 export default App;
