@@ -9,7 +9,6 @@ import {
   FormControl,
   FormGroup,
   Grid,
-  Link,
   Stack,
   Typography,
   TextField,
@@ -17,13 +16,20 @@ import {
 
 const Login = ({ socket }: any) => {
   const navigate = useNavigate();
+
   const [userName, setUserName] = useState<string>("");
+  const [required, setRequired] = useState(false);
 
   const handleSubmit = (e: BaseSyntheticEvent) => {
     e.preventDefault();
-    localStorage.setItem("userName", userName);
-    socket.emit("newUser", { userName, socketID: socket.id });
-    navigate("/chat");
+
+    if (userName.trim() && userName.length >= 3) {
+      localStorage.setItem("userName", userName);
+      socket.emit("newUser", { userName, socketID: socket.id });
+      navigate("/chat");
+    } else {
+      setRequired(true);
+    }
   };
 
   return (
@@ -63,10 +69,11 @@ const Login = ({ socket }: any) => {
                     variant="outlined"
                     autoComplete="off"
                     autoFocus
-                    required
-                    onChange={(e: BaseSyntheticEvent) =>
-                      setUserName(e.target.value)
-                    }
+                    color={required ? "error" : undefined}
+                    onChange={(e: BaseSyntheticEvent) => {
+                      setRequired(false);
+                      setUserName(e.target.value);
+                    }}
                   />
                 </Stack>
               </FormGroup>

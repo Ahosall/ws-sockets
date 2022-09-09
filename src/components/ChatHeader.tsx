@@ -1,7 +1,6 @@
 import { AppBar, Box, Toolbar, Typography, IconButton } from "@mui/material";
 
 import { Logout } from "@mui/icons-material";
-import { Navigate } from "react-router-dom";
 
 const ChatHeader = () => {
   const handleLeave = () => {

@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Grid } from "@mui/material";
 import { Navigate } from "react-router-dom";
 
@@ -8,7 +7,7 @@ import ChatHeader from "../components/ChatHeader";
 
 const Chat = ({ socket }: any) => {
   const username = localStorage.getItem("userName");
-  if (!username) return <Navigate to="/" />;
+  if (!username || socket.connected === false) return <Navigate to="/" />;
 
   return (
     <>

@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   Paper,
-  Container,
   List,
   ListItem,
   ListItemText,
@@ -11,14 +10,12 @@ import {
   Divider,
 } from "@mui/material";
 
-import { AccountCircle, Public } from "@mui/icons-material";
+import { AccountCircle } from "@mui/icons-material";
 
 const ChatBar = ({ socket }: any) => {
   const [users, setUsers] = useState<any>([]);
 
-  useEffect(() => {
-    socket.on("newUserRes", (data: any) => setUsers(data));
-  }, [socket, users]);
+  socket.on("newUserRes", (data: any) => setUsers(data));
 
   return (
     <Paper elevation={2} sx={{ minHeight: "88vh" }}>

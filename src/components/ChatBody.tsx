@@ -11,28 +11,26 @@ import {
   Typography,
   InputBase,
   IconButton,
+  Button,
 } from "@mui/material";
 
-import { Send } from "@mui/icons-material";
-
-interface IUser {
-  name: string;
-  id: string;
-}
+import { InsertDriveFile, Send, Block } from "@mui/icons-material";
 
 interface IChatBody {
   socket: any;
 }
 
 const ChatBody = ({ socket }: IChatBody) => {
-  const [time, setTime] = useState<Boolean>(false);
   const [messages, setMessages] = useState<Array<any>>([]);
   const [typingStatus, setTypingStatus] = useState("");
+  const [time, setTime] = useState<Boolean>(false);
   const [message, setMessage] = useState("");
+  const [files, setFiles] = useState<Array<FileList>>([]);
 
   const username = localStorage.getItem("userName");
 
   socket.on("msgResponse", (data: any) => {
+    console.log(data);
     setMessages([...messages, data]);
   });
 
@@ -48,25 +46,22 @@ const ChatBody = ({ socket }: IChatBody) => {
   const handleSend = (e: BaseSyntheticEvent) => {
     e.preventDefault();
 
-    if (message.trim() && username != undefined) {
+    if (message.trim() && username !== undefined && message.length < 900) {
       socket.emit("msgSend", {
         text: message,
+        files: true,
         name: username,
         id: `${socket.id}${Math.random()}`,
         socketID: socket.id,
       });
-    }
-    console.log({
-      username: localStorage.getItem("userName"),
-      message,
-    });
 
-    socket.emit("typing", ``);
-    setMessage("");
+      socket.emit("typing", ``);
+      setMessage("");
+    }
   };
 
   const handleTyping = () => {
-    socket.emit("typing", `${localStorage.getItem("userName")} is typing`);
+    socket.emit("typing", `${localStorage.getItem("userName")} is typing ...`);
   };
 
   const handleTypingStop = () => {
@@ -86,61 +81,93 @@ const ChatBody = ({ socket }: IChatBody) => {
       }}
       elevation={1}
     >
-      <CardHeader
-        action={<Typography variant="caption">{typingStatus}</Typography>}
-        title={<Box>General </Box>}
-      />
+      <CardHeader title="General" />
       <CardContent
         id="messages"
-        sx={{ height: "100%", maxHeight: "72vh", overflowX: "auto", px: 0 }}
+        sx={{ height: "100%", maxHeight: "71vh", overflowX: "auto", px: 0 }}
       >
-        {messages.map((r, i) => (
-          <Container key={i} sx={{ mb: 2, right: 0, display: "flex" }}>
-            <Card
-              sx={{
-                minWidth: "10vw",
-                maxWidth: "45vw",
-                mr: 0,
-                ml: r.socketID == socket.id ? "auto" : 0,
-              }}
-              elevation={2}
-            >
-              <CardHeader subheader={r.name} />
-              <CardContent sx={{ pt: 0 }}>
-                <Typography variant="body2" component="div" margin="normal">
-                  {r.text}
+        {messages.map((r, i) =>
+          r.id !== "SYSTEM" ? (
+            <Container key={i} sx={{ mb: 2, right: 0, display: "flex" }}>
+              <Card
+                sx={{
+                  minWidth: "10vw",
+                  maxWidth: "45vw",
+                  textAlign: r.id === "SYSTEM" ? "center" : "left",
+                  mr: 0,
+                  ml: r.socketID === socket.id ? "auto" : 0,
+                }}
+                elevation={2}
+              >
+                {r.socketID === socket.id ? (
+                  <CardHeader subheader="You" />
+                ) : (
+                  <CardHeader subheader={r.name} />
+                )}
+                <CardContent sx={{ pt: 0 }}>
+                  <Typography variant="body2" component="div" margin="normal">
+                    {r.id === "SYSTEM" ? r.name : null} {r.text}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Container>
+          ) : (
+            <Container key={i} sx={{ mb: 2, right: 0, display: "flex" }}>
+              <Box sx={{ width: "100%" }}>
+                <Typography variant="body2" sx={{ textAlign: "center" }}>
+                  {r.name} {r.text}
                 </Typography>
-              </CardContent>
-            </Card>
-          </Container>
-        ))}
+              </Box>
+            </Container>
+          )
+        )}
       </CardContent>
 
       <CardActions>
-        <Paper
-          elevation={2}
-          component="form"
-          sx={{
-            p: "2px 4px",
-            display: "flex",
-            alignItems: "center",
-            width: "100%",
-          }}
-          onSubmit={handleSend}
-        >
-          <InputBase
-            sx={{ ml: 1, flex: 1 }}
-            placeholder="Mensagem"
-            onChange={(e: BaseSyntheticEvent) => setMessage(e.target.value)}
-            onKeyDown={handleTyping}
-            onKeyUp={handleTypingStop}
-            value={message}
-            autoFocus
-          />
-          <IconButton type="submit" sx={{ p: "10px" }} aria-label="search">
-            <Send />
-          </IconButton>
-        </Paper>
+        <Box sx={{ width: "100%" }}>
+          <Paper
+            elevation={2}
+            component="form"
+            sx={{
+              p: "2px 4px",
+              display: "flex",
+              alignItems: "center",
+              width: "100%",
+            }}
+            onSubmit={handleSend}
+          >
+            <IconButton component="label" sx={{ p: "10px" }}>
+              <InsertDriveFile />
+              <input
+                onChange={(e: BaseSyntheticEvent) =>
+                  setFiles([...files, e.target.files])
+                }
+                type="file"
+                hidden
+              />
+            </IconButton>
+
+            <InputBase
+              sx={{ ml: 1, flex: 1 }}
+              placeholder="Message"
+              onChange={(e: BaseSyntheticEvent) => setMessage(e.target.value)}
+              onKeyDown={handleTyping}
+              onKeyUp={handleTypingStop}
+              value={message}
+              autoFocus
+            />
+
+            <IconButton
+              type="submit"
+              sx={{ p: "10px" }}
+              disabled={message.length > 900}
+              color={message.length < 700 ? "inherit" : "warning"}
+            >
+              {message.length < 900 ? <Send /> : <Block />}
+            </IconButton>
+          </Paper>
+          <Typography variant="caption">{typingStatus}</Typography>
+        </Box>
       </CardActions>
     </Card>
   );
